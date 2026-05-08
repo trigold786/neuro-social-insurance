@@ -106,6 +106,31 @@ export const scenarioApi = {
 export const reportApi = {
   create: (data: unknown) => api.post('/reports', data),
   status: (taskId: string) => api.get(`/reports/${taskId}`),
+  getDownloadUrl: (taskId: string) => {
+    const base = import.meta.env.VITE_API_BASE || '/api/v1'
+    return `${base}/v1/reports/download/${taskId}`
+  },
+  downloadPdf: async (taskId: string) => {
+    const url = `${import.meta.env.VITE_API_BASE || '/api/v1'}/v1/reports/download/${taskId}`
+    const token = useAuthStore.getState().accessToken
+    if (!token) {
+      throw new Error('未登录，请先登录')
+    }
+    const headers: Record<string, string> = { 'Authorization': `Bearer ${token}` }
+    const response = await fetch(url, { headers })
+    if (!response.ok) {
+      throw new Error('下载失败')
+    }
+    const blob = await response.blob()
+    const blobUrl = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = blobUrl
+    a.download = `NSI_Report_${taskId.slice(0, 8)}.pdf`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(blobUrl)
+  },
 }
 
 export const configApi = {

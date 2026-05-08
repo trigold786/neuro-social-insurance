@@ -37,6 +37,12 @@ export interface StrategyResult {
   transitional_pension: number
   total_monthly_deduction: number
   monthly_take_home: number
+  employment_type?: string
+  covered_insurances?: string[]
+  excluded_insurances?: string[]
+  government_subsidy?: number
+  recommendation?: string
+  policy_source?: string
 }
 
 // 参保历史记录

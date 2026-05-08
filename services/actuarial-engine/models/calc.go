@@ -8,7 +8,7 @@ import (
 type SandboxRequest struct {
 	RegionCode     string  `json:"region_code" binding:"required"`
 	Age            int     `json:"age" binding:"required,min=16,max=70"`
-	EmploymentType string  `json:"employment_type" binding:"required,oneof=Flexible_Employment Corporate_Employee"`
+	EmploymentType string  `json:"employment_type" binding:"required,oneof=Flexible_Employment Corporate_Employee Urban_Rural_Residents"`
 	BaseSalary     int     `json:"base_salary" binding:"required,min=1000"`
 	RetirementAge  int     `json:"retirement_age" binding:"required,min=50,max=75,gtfield=Age"`
 	Strategy       string  `json:"strategy" binding:"required,oneof=conservative balanced aggressive"`
@@ -66,6 +66,13 @@ type CalcResult struct {
 	ContributionIndex      float64 `json:"contribution_index"`
 	TotalMonthlyDeduction  float64 `json:"total_monthly_deduction"`
 	MonthlyTakeHome       float64 `json:"monthly_take_home"`
+
+	EmploymentType        string   `json:"employment_type"`
+	CoveredInsurances     []string `json:"covered_insurances"`
+	ExcludedInsurances    []string `json:"excluded_insurances"`
+	GovernmentSubsidy     float64  `json:"government_subsidy,omitempty"`
+	Recommendation        string   `json:"recommendation,omitempty"`
+	PolicySource          string   `json:"policy_source,omitempty"`
 }
 
 // DeepPlanRequest 深度规划请求
@@ -76,7 +83,7 @@ type DeepPlanRequest struct {
 	RegionCode               string  `json:"region_code"`
 	Age                      int     `json:"age"`
 	Gender                   string  `json:"gender"`
-	EmploymentType           string  `json:"employment_type"`
+	EmploymentType           string  `json:"employment_type" binding:"oneof=Flexible_Employment Corporate_Employee Urban_Rural_Residents"`
 	CumulativeMonths         int     `json:"cumulative_months"`
 	PersonalAccountBalance   float64 `json:"personal_account_balance"`
 	AverageContributionIndex float64 `json:"average_contribution_index"`

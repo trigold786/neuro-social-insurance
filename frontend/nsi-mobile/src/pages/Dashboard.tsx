@@ -236,6 +236,13 @@ export default function Dashboard() {
           <span className="font-mono text-sm tracking-wider">启动智能测算沙盘</span>
         </button>
       </Link>
+
+      {/* Disclaimer */}
+      <div className="mt-6 p-3 bg-nsi-bg/40 border border-nsi-border/30 rounded-sm">
+        <div className="font-mono text-[10px] text-nsi-muted/60 leading-relaxed">
+          ⚠️ <strong>免责声明</strong>：本平台所有测算结果仅供参考，不构成任何投资建议。社保政策数据来源于各城市人力资源和社会保障局官网，实际养老金以当地社保局最终核算为准。政策信息可能存在更新延迟，请以官方最新公告为准。
+        </div>
+      </div>
       </>
       )}
     </div>

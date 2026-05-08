@@ -2,7 +2,8 @@ import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Slider from '../components/Slider'
 import ChartCanvas from '../components/ChartCanvas'
-import { calcApi, scenarioApi } from '../api/client'
+import ShareCard from '../components/ShareCard'
+import { calcApi, scenarioApi, reportApi } from '../api/client'
 import { useCalcStore, StrategyResult } from '../stores/calcStore'
 import { useAuthStore } from '../stores/authStore'
 import { FunnelContainer } from './FunnelContainer'
@@ -84,6 +85,7 @@ export default function Sandbox() {
   const [saveName, setSaveName] = useState('')
   const [saveDesc, setSaveDesc] = useState('')
   const [saveLoading, setSaveLoading] = useState(false)
+  const [pdfLoading, setPdfLoading] = useState(false)
 
   useEffect(() => {
     if (!authStore.isAuthenticated()) { navigate('/login', { replace: true }); return }
@@ -258,6 +260,36 @@ export default function Sandbox() {
     }
   }
 
+  const handleExportPDF = async () => {
+    if (!allResults || allResults.length === 0) return
+    setPdfLoading(true)
+    try {
+      const profileId = '1'
+      const result = await reportApi.create({
+        profile_id: profileId,
+        report_type: 'comprehensive',
+        scenarios: allResults.map((r: StrategyResult) => r.strategy),
+      }) as { task_id: string; status: string }
+      const taskId = result.task_id
+      let status = result.status
+      for (let i = 0; i < 30; i++) {
+        await new Promise((r) => setTimeout(r, 1000))
+        const statusResult = await reportApi.status(taskId) as { status: string }
+        status = statusResult.status
+        if (status === 'completed') {
+          await reportApi.downloadPdf(taskId)
+          break
+        } else if (status === 'failed') {
+          throw new Error('报告生成失败')
+        }
+      }
+    } catch (e: any) {
+      alert('导出失败: ' + (e.message || '未知错误'))
+    } finally {
+      setPdfLoading(false)
+    }
+  }
+
   return (
     <div className="space-y-4 lg:space-y-6">
       <div className="flex items-center justify-between">
@@ -420,6 +452,67 @@ export default function Sandbox() {
               <div className="border border-nsi-border rounded-sm p-2 bg-nsi-bg/30">
                 <ChartCanvas labels={labels} invested={invested} benefit={benefit} breakEvenIndex={breakIdx} />
               </div>
+
+              {/* Non-employee insurance recommendation */}
+              {displayResult && (displayResult.employment_type === 'Flexible_Employment' || displayResult.employment_type === 'Urban_Rural_Residents') && (
+                <div className="mt-4 space-y-3">
+                  {/* Covered insurances */}
+                  {displayResult.covered_insurances && displayResult.covered_insurances.length > 0 && (
+                    <div className="bg-nsi-bg/40 border border-nsi-border p-3 rounded-sm">
+                      <div className="font-mono text-[10px] text-nsi-green uppercase tracking-wider mb-2">✓ 可参保险种</div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {displayResult.covered_insurances.map((ins: string) => (
+                          <span key={ins} className="px-2 py-0.5 bg-nsi-green/10 border border-nsi-green/20 rounded-sm font-mono text-[10px] text-nsi-green">{ins}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {/* Excluded insurances */}
+                  {displayResult.excluded_insurances && displayResult.excluded_insurances.length > 0 && (
+                    <div className="bg-nsi-bg/40 border border-nsi-border/50 p-3 rounded-sm">
+                      <div className="font-mono text-[10px] text-nsi-amber uppercase tracking-wider mb-2">✗ 不可参保险种</div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {displayResult.excluded_insurances.map((ins: string) => (
+                          <span key={ins} className="px-2 py-0.5 bg-nsi-amber/10 border border-nsi-amber/20 rounded-sm font-mono text-[10px] text-nsi-amber">{ins}</span>
+                        ))}
+                      </div>
+                      <div className="mt-2 font-mono text-[10px] text-nsi-muted leading-relaxed">
+                        {displayResult.employment_type === 'Flexible_Employment'
+                          ? '灵活就业人员无法享受失业、工伤、生育保险保障，建议通过商业保险弥补。'
+                          : '城乡居民无法享受职工社保中的失业、工伤、生育及公积金保障。'}
+                      </div>
+                    </div>
+                  )}
+                  {/* Government subsidy hint */}
+                  {displayResult.government_subsidy && displayResult.government_subsidy > 0 && (
+                    <div className="bg-nsi-green/5 border border-nsi-green/20 p-3 rounded-sm">
+                      <div className="font-mono text-[10px] text-nsi-green uppercase tracking-wider mb-1">政府补贴</div>
+                      <div className="font-mono text-xs text-nsi-text">
+                        该城市政府提供约{Math.round(displayResult.government_subsidy * 100)}%养老保险缴费补贴，实际个人支出可显著降低。
+                      </div>
+                    </div>
+                  )}
+                  {/* Recommendation */}
+                  {displayResult.recommendation && (
+                    <div className="bg-nsi-cyan/5 border border-nsi-cyan/20 p-3 rounded-sm">
+                      <div className="font-mono text-[10px] text-nsi-cyan uppercase tracking-wider mb-1">个性化建议</div>
+                      <div className="font-mono text-xs text-nsi-text leading-relaxed">{displayResult.recommendation}</div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Data source */}
+              {displayResult.policy_source && (
+                <div className="mt-3 font-mono text-[9px] text-nsi-muted/60">
+                  {displayResult.policy_source}
+                </div>
+              )}
+
+              {/* Disclaimer */}
+              <div className="mt-3 font-mono text-[9px] text-nsi-muted/50 leading-relaxed border-t border-nsi-border/30 pt-2">
+                ⚠️ 本测算结果仅供参考，不构成任何投资建议。实际养老金以当地社保局最终核算为准。
+              </div>
             </section>
           </div>
 
@@ -459,11 +552,21 @@ export default function Sandbox() {
                 </svg>
                 <span className="font-mono text-sm tracking-wider">保存方案</span>
               </button>
-              <button className="w-full nsi-btn-primary flex items-center justify-center gap-2 py-4">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                </svg>
-                <span className="font-mono text-sm tracking-wider">导出 PDF 报告</span>
+              <button
+                onClick={handleExportPDF}
+                disabled={pdfLoading || !allResults || allResults.length === 0}
+                className="w-full nsi-btn-primary flex items-center justify-center gap-2 py-4 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {pdfLoading ? (
+                  <span className="font-mono text-sm tracking-wider">生成中...</span>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                    <span className="font-mono text-sm tracking-wider">导出 PDF 报告</span>
+                  </>
+                )}
               </button>
             </div>
 
@@ -483,6 +586,18 @@ export default function Sandbox() {
                   })}
                 </div>
               </div>
+            )}
+
+            {/* ShareCard */}
+            {displayResult && (
+              <ShareCard
+                scenarioName={`${displayResult.strategy === 'conservative' ? '保守型' : displayResult.strategy === 'balanced' ? '均衡型' : '进取型'}方案`}
+                monthlyPension={displayResult.monthly_pension_estimate}
+                totalInvested={displayResult.total_invested}
+                irr={displayResult.irr}
+                breakEvenAge={displayResult.break_even_age}
+                strategy={displayResult.strategy}
+              />
             )}
           </div>
         </div>
@@ -636,13 +751,35 @@ export default function Sandbox() {
             </svg>
             <span className="font-mono text-sm tracking-wider">保存方案</span>
           </button>
-          <button className="w-full nsi-btn-primary flex items-center justify-center gap-2 py-4">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-            </svg>
-            <span className="font-mono text-sm tracking-wider">导出 PDF 报告</span>
+          <button
+            onClick={handleExportPDF}
+            disabled={pdfLoading || !allResults || allResults.length === 0}
+            className="w-full nsi-btn-primary flex items-center justify-center gap-2 py-4 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {pdfLoading ? (
+              <span className="font-mono text-sm tracking-wider">生成中...</span>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                </svg>
+                <span className="font-mono text-sm tracking-wider">导出 PDF 报告</span>
+              </>
+            )}
           </button>
         </div>
+
+        {/* Mobile ShareCard */}
+        {displayResult && (
+          <ShareCard
+            scenarioName={`${displayResult.strategy === 'conservative' ? '保守型' : displayResult.strategy === 'balanced' ? '均衡型' : '进取型'}方案`}
+            monthlyPension={displayResult.monthly_pension_estimate}
+            totalInvested={displayResult.total_invested}
+            irr={displayResult.irr}
+            breakEvenAge={displayResult.break_even_age}
+            strategy={displayResult.strategy}
+          />
+        )}
       </div>
 
       {/* Save Scenario Modal */}

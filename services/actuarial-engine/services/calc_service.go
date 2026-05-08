@@ -26,6 +26,99 @@ func defaultParams(strategy string) calcParams {
 	}
 }
 
+type employmentInsuranceRates struct {
+	personalPensionRate  float64
+	personalMedicalRate  float64
+	unemploymentRate     float64
+	housingFundRate      float64
+	employerPensionRate  float64
+	employerMedicalRate float64
+	workInjuryRate       float64
+	maternityRate        float64
+	governmentSubsidy    float64
+}
+
+func getEmploymentRates(empType string, regionData models.RegionRateData) employmentInsuranceRates {
+	r := employmentInsuranceRates{}
+	switch empType {
+	case "Corporate_Employee":
+		r.personalPensionRate = regionData.PersonalPensionRate
+		r.personalMedicalRate = regionData.PersonalMedicalRate
+		r.unemploymentRate = regionData.UnemploymentRate
+		r.housingFundRate = regionData.HousingFundRate
+		r.employerPensionRate = regionData.EmployerPensionRate
+		r.employerMedicalRate = regionData.EmployerMedicalRate
+		r.workInjuryRate = regionData.WorkInjuryRate
+		r.maternityRate = regionData.MaternityRate
+		r.governmentSubsidy = 0
+	case "Flexible_Employment":
+		r.personalPensionRate = regionData.EmployerPensionRate + regionData.PersonalPensionRate
+		r.personalMedicalRate = regionData.EmployerMedicalRate + regionData.PersonalMedicalRate
+		r.unemploymentRate = 0
+		r.housingFundRate = regionData.HousingFundRate
+		r.employerPensionRate = 0
+		r.employerMedicalRate = 0
+		r.workInjuryRate = 0
+		r.maternityRate = 0
+		r.governmentSubsidy = 0.3
+	case "Urban_Rural_Residents":
+		r.personalPensionRate = 0
+		r.personalMedicalRate = 0
+		r.unemploymentRate = 0
+		r.housingFundRate = 0
+		r.employerPensionRate = 0
+		r.employerMedicalRate = 0
+		r.workInjuryRate = 0
+		r.maternityRate = 0
+		r.governmentSubsidy = 0
+	default:
+		r.personalPensionRate = regionData.PersonalPensionRate
+		r.personalMedicalRate = regionData.PersonalMedicalRate
+		r.unemploymentRate = regionData.UnemploymentRate
+		r.housingFundRate = regionData.HousingFundRate
+		r.employerPensionRate = regionData.EmployerPensionRate
+		r.employerMedicalRate = regionData.EmployerMedicalRate
+		r.workInjuryRate = regionData.WorkInjuryRate
+		r.maternityRate = regionData.MaternityRate
+	}
+	return r
+}
+
+func getCoveredInsurances(empType string) (covered, excluded []string) {
+	excluded = []string{}
+	switch empType {
+	case "Corporate_Employee":
+		covered = []string{"养老保险", "医疗保险", "失业保险", "工伤保险", "生育保险", "住房公积金"}
+		excluded = []string{}
+	case "Flexible_Employment":
+		covered = []string{"养老保险", "医疗保险", "住房公积金"}
+		excluded = []string{"失业保险", "工伤保险", "生育保险"}
+	case "Urban_Rural_Residents":
+		covered = []string{"城乡居民养老保险", "城乡居民医疗保险"}
+		excluded = []string{"失业保险", "工伤保险", "生育保险", "住房公积金"}
+	default:
+		covered = []string{"养老保险", "医疗保险"}
+	}
+	return covered, excluded
+}
+
+func buildRecommendation(empType string, regionData models.RegionRateData, monthlyPension float64, totalInvested float64, yearsToRetire int) string {
+	switch empType {
+	case "Flexible_Employment":
+		subsidyNote := ""
+		if regionData.TransitionalCoeff >= 1.2 {
+			subsidyNote = "该城市政府提供约30%缴费补贴，实际个人支出可降低。建议优先选择高档位缴费基数，累计15年以上可获得更好的养老金水平。"
+		} else {
+			subsidyNote = "建议了解当地政府是否提供缴费补贴政策，部分城市灵活就业人员可享受30%-50%的养老保险补贴。"
+		}
+		return fmt.Sprintf("灵活就业人员需全额自缴养老和医疗险，无失业/工伤/生育保障。%s", subsidyNote)
+	case "Urban_Rural_Residents":
+		return "城乡居民社保为兜底保障，缴费低（年缴1000-5000元）但待遇也较低。建议在经济条件改善后，可转为灵活就业参保以获得更高养老金。"
+	default:
+		return ""
+	}
+}
+
 func applyDefaults(req *models.SandboxRequest) {
 	regionData := models.GetRegionRateData(req.RegionCode)
 
@@ -105,7 +198,7 @@ func CalculateSandbox(req models.SandboxRequest) (models.CalcResult, error) {
 	cb := float64(req.ContributionBase)
 	for year := 1; year <= yearsToRetire; year++ {
 		grownCB := cb * math.Pow(1+params.avgWageGrowthRate, float64(year-1))
-		annualContribution := grownCB * 12.0 * regionData.PersonalPensionRate
+		annualContribution := grownCB * 12.0 * empRates.personalPensionRate
 		yearsOfInterest := float64(yearsToRetire - year)
 		futureBalance += annualContribution * math.Pow(1+params.personalAccountRate, yearsOfInterest)
 	}
@@ -122,15 +215,16 @@ func CalculateSandbox(req models.SandboxRequest) (models.CalcResult, error) {
 
 	monthlyPension := basicPension + personalPension + transitionalPension
 
-	personalDeductionRate := regionData.PersonalPensionRate + regionData.PersonalMedicalRate + regionData.UnemploymentRate + regionData.HousingFundRate
-	totalMonthlyDeduction := cb * personalDeductionRate
+	empRates := getEmploymentRates(req.EmploymentType, regionData)
+	totalPersonalRate := empRates.personalPensionRate + empRates.personalMedicalRate + empRates.unemploymentRate + empRates.housingFundRate
+	totalEmployerRate := empRates.employerPensionRate + empRates.employerMedicalRate + empRates.workInjuryRate + empRates.maternityRate
+	totalMonthlyDeduction := cb * totalPersonalRate
 	monthlyTakeHome := float64(req.BaseSalary) - totalMonthlyDeduction
 
-	employerTotalRate := regionData.EmployerPensionRate + regionData.EmployerMedicalRate + regionData.UnemploymentRate + regionData.WorkInjuryRate + regionData.MaternityRate + regionData.HousingFundRate
 	totalInvested := 0.0
 	for year := 0; year < yearsToRetire; year++ {
 		grownCB := cb * math.Pow(1+params.avgWageGrowthRate, float64(year))
-		totalInvested += grownCB * 12.0 * (personalDeductionRate + employerTotalRate)
+		totalInvested += grownCB * 12.0 * (totalPersonalRate + totalEmployerRate)
 	}
 
 	yearsReceive := params.lifeExpectancy - req.RetirementAge
@@ -151,17 +245,17 @@ func CalculateSandbox(req models.SandboxRequest) (models.CalcResult, error) {
 		}
 		if age < req.RetirementAge {
 			grownCB := cb * math.Pow(1+params.avgWageGrowthRate, float64(age-req.Age))
-			personalAnnual := grownCB * 12.0 * personalDeductionRate
-			employerAnnual := grownCB * 12.0 * employerTotalRate
+			personalAnnual := grownCB * 12.0 * totalPersonalRate
+			employerAnnual := grownCB * 12.0 * totalEmployerRate
 			annualOut := personalAnnual + employerAnnual
 			out = annualOut
 			cumInv += out
-			cf.PensionOutflow = math.Round(grownCB * 12.0 * regionData.PersonalPensionRate)
-			cf.MedicalOutflow = math.Round(grownCB * 12.0 * regionData.PersonalMedicalRate)
-			cf.UnemploymentOutflow = math.Round(grownCB * 12.0 * regionData.UnemploymentRate)
-			cf.HousingOutflow = math.Round(grownCB * 12.0 * regionData.HousingFundRate)
-			cf.EmployerPensionOutflow = math.Round(grownCB * 12.0 * regionData.EmployerPensionRate)
-			cf.EmployerMedicalOutflow = math.Round(grownCB * 12.0 * regionData.EmployerMedicalRate)
+			cf.PensionOutflow = math.Round(grownCB * 12.0 * empRates.personalPensionRate)
+			cf.MedicalOutflow = math.Round(grownCB * 12.0 * empRates.personalMedicalRate)
+			cf.UnemploymentOutflow = math.Round(grownCB * 12.0 * empRates.unemploymentRate)
+			cf.HousingOutflow = math.Round(grownCB * 12.0 * empRates.housingFundRate)
+			cf.EmployerPensionOutflow = math.Round(grownCB * 12.0 * empRates.employerPensionRate)
+			cf.EmployerMedicalOutflow = math.Round(grownCB * 12.0 * empRates.employerMedicalRate)
 		} else {
 			in = monthlyPension * 12.0
 			cumBen += in
@@ -179,7 +273,10 @@ func CalculateSandbox(req models.SandboxRequest) (models.CalcResult, error) {
 		breakEvenAge = params.lifeExpectancy
 	}
 
-	irr := computeIRR(yearsToRetire, cb, personalDeductionRate, employerTotalRate, params.avgWageGrowthRate, monthlyPension, yearsReceive)
+	irr := computeIRR(yearsToRetire, cb, totalPersonalRate, totalEmployerRate, params.avgWageGrowthRate, monthlyPension, yearsReceive)
+	covered, excluded := getCoveredInsurances(req.EmploymentType)
+	recommendation := buildRecommendation(req.EmploymentType, regionData, monthlyPension, totalInvested, yearsToRetire)
+	policySource := fmt.Sprintf("数据来源：%s人力资源和社会保障局官网（2026年最新费率）", regionData.RegionName)
 
 	return models.CalcResult{
 		Strategy:               req.Strategy,
@@ -199,7 +296,13 @@ func CalculateSandbox(req models.SandboxRequest) (models.CalcResult, error) {
 		PaymentMonths:          paymentMonths,
 		ContributionIndex:      req.AverageContributionIndex,
 		TotalMonthlyDeduction:  math.Round(totalMonthlyDeduction*100) / 100,
-		MonthlyTakeHome:       math.Round(monthlyTakeHome*100) / 100,
+		MonthlyTakeHome:        math.Round(monthlyTakeHome*100) / 100,
+		EmploymentType:         req.EmploymentType,
+		CoveredInsurances:      covered,
+		ExcludedInsurances:     excluded,
+		GovernmentSubsidy:      empRates.governmentSubsidy,
+		Recommendation:         recommendation,
+		PolicySource:           policySource,
 	}, nil
 }
 
