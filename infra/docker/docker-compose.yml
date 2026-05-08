@@ -1,0 +1,149 @@
+version: "3.8"
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: nsi
+      POSTGRES_PASSWORD: nsi_dev
+      POSTGRES_DB: nsi_platform
+    expose:
+      - "5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres/init_dbs.sh:/docker-entrypoint-initdb.d/init_dbs.sh:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nsi"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --requirepass nsi_redis_dev --appendonly yes
+    expose:
+      - "6379"
+    volumes:
+      - redisdata:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "nsi_redis_dev", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  minio:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    expose:
+      - "9000"
+      - "9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - miniodata:/data
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "30310:30310"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../../frontend/nsi-mobile/dist:/usr/share/nginx/html:ro
+    depends_on:
+      - account-center
+      - policy-hub
+      - actuarial-engine
+      - nsi-business
+      - config-service
+      - admin-web
+    restart: unless-stopped
+
+  account-center:
+    build: ../../services/account-center
+    environment:
+      DATABASE_URL: postgresql+asyncpg://nsi:nsi_dev@postgres:5432/nsi_account
+      JWT_SECRET: dev-secret-change-me
+    expose:
+      - "30311"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      config-service:
+        condition: service_started
+    restart: unless-stopped
+
+  policy-hub:
+    build: ../../services/policy-hub
+    environment:
+      DATABASE_URL: postgresql+asyncpg://nsi:nsi_dev@postgres:5432/nsi_policy_hub
+      REDIS_URL: redis://:nsi_redis_dev@redis:6379/0
+    expose:
+      - "30312"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  actuarial-engine:
+    build: ../../services/actuarial-engine
+    expose:
+      - "30313"
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  nsi-business:
+    build: ../../services/nsi-business
+    environment:
+      DATABASE_URL: postgresql+asyncpg://nsi:nsi_dev@postgres:5432/nsi_business
+      REDIS_URL: redis://:nsi_redis_dev@redis:6379/1
+      ACCOUNT_CENTER_URL: http://account-center:30311
+      POLICY_HUB_URL: http://policy-hub:30312
+      ACTUARIAL_URL: http://actuarial-engine:30313
+    expose:
+      - "30314"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      account-center:
+        condition: service_started
+      policy-hub:
+        condition: service_started
+    restart: unless-stopped
+
+  config-service:
+    build: ../../services/config-service
+    environment:
+      DATABASE_URL: postgresql+asyncpg://nsi:nsi_dev@postgres:5432/nsi_config
+      REDIS_URL: redis://:nsi_redis_dev@redis:6379/2
+      ADMIN_TOKEN: nsi-admin-2024
+      ENCRYPTION_KEY: dev-enc-key-32bytes-long!!!
+    expose:
+      - "30315"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  admin-web:
+    build: ../../frontend/admin-web
+    expose:
+      - "30301"
+    depends_on:
+      - config-service
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  redisdata:
+  miniodata:

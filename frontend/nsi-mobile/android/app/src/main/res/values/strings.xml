@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NSI社保速算</string>
+    <string name="title_activity_main">NSI社保定制速算器</string>
+    <string name="package_name">com.nsi.socialinsurance</string>
+    <string name="custom_url_scheme">com.nsi.socialinsurance</string>
+</resources>

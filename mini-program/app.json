@@ -1,0 +1,45 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/sandbox/sandbox",
+    "pages/profile/profile"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#0a0f1e",
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "NSI 社保定制速算器",
+    "backgroundColor": "#0a0f1e",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "color": "#7b8fa6",
+    "selectedColor": "#00d4ff",
+    "backgroundColor": "#0d1526",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "styles/tabs/home.png",
+        "selectedIconPath": "styles/tabs/home-active.png"
+      },
+      {
+        "pagePath": "pages/sandbox/sandbox",
+        "text": "沙盘",
+        "iconPath": "styles/tabs/sandbox.png",
+        "selectedIconPath": "styles/tabs/sandbox-active.png"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的",
+        "iconPath": "styles/tabs/profile.png",
+        "selectedIconPath": "styles/tabs/profile-active.png"
+      }
+    ]
+  },
+  "usingComponents": {
+    "strategy-card": "/components/strategy-card",
+    "policy-radar": "/components/policy-radar",
+    "tax-calculator": "/components/tax-calculator"
+  }
+}

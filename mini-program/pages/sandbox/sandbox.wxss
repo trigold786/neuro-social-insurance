@@ -1,0 +1,146 @@
+.strategy-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.strategy-card {
+  background: rgba(26, 35, 50, 0.6);
+  border: 1rpx solid #1a2332;
+  border-radius: 8rpx;
+  padding: 24rpx;
+  transition: all 0.2s;
+}
+
+.strategy-card.active {
+  border-color: rgba(0, 212, 255, 0.4);
+  background: rgba(0, 212, 255, 0.05);
+}
+
+.strategy-badge {
+  display: inline-block;
+  font-size: 20rpx;
+  font-family: 'JetBrains Mono', monospace;
+  padding: 4rpx 12rpx;
+  border-radius: 4rpx;
+  margin-bottom: 12rpx;
+}
+
+.badge-conservative {
+  color: #ffb800;
+  background: rgba(255, 184, 0, 0.15);
+  border: 1rpx solid rgba(255, 184, 0, 0.3);
+}
+
+.badge-balanced {
+  color: #00d4ff;
+  background: rgba(0, 212, 255, 0.15);
+  border: 1rpx solid rgba(0, 212, 255, 0.3);
+}
+
+.badge-aggressive {
+  color: #00e5a0;
+  background: rgba(0, 229, 160, 0.15);
+  border: 1rpx solid rgba(0, 229, 160, 0.3);
+}
+
+.strategy-pension {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #e8f0fe;
+}
+
+.strategy-unit {
+  margin-top: -8rpx;
+}
+
+.slider-section {
+  margin-top: 16rpx;
+}
+
+.card-sub {
+  background: rgba(26, 35, 50, 0.6);
+  border: 1rpx solid #1a2332;
+  border-radius: 8rpx;
+  padding: 20rpx;
+}
+
+.label {
+  font-size: 20rpx;
+  color: #7b8fa6;
+  text-transform: uppercase;
+  letter-spacing: 2rpx;
+  margin-bottom: 8rpx;
+}
+
+.value {
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.loading-card {
+  background: rgba(0, 212, 255, 0.1);
+  border-color: rgba(0, 212, 255, 0.3);
+}
+
+.pulse-dot {
+  width: 24rpx;
+  height: 24rpx;
+  border-radius: 50%;
+  background: #00d4ff;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 4px #00d4ff; }
+  50% { opacity: 0.6; box-shadow: 0 0 12px #00d4ff; }
+}
+
+.text-glow {
+  text-shadow: 0 0 12px rgba(0, 212, 255, 0.4);
+}
+
+.btn-outline {
+  background: rgba(0, 212, 255, 0.1);
+  border: 1rpx solid rgba(0, 212, 255, 0.4);
+  color: #00d4ff;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 28rpx;
+  padding: 20rpx 32rpx;
+  border-radius: 8rpx;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+}
+
+.policy-item:last-child {
+  margin-bottom: 0;
+}
+
+.badge {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.badge-verified {
+  background: #00e5a0;
+  box-shadow: 0 0 6px #00e5a0;
+}
+
+.badge-conflict {
+  background: #ffb800;
+  box-shadow: 0 0 6px #ffb800;
+}
+
+.badge-draft {
+  background: #ff4d6d;
+  box-shadow: 0 0 6px #ff4d6d;
+}
+
+.tag-conservative { background: rgba(255, 184, 0, 0.15); border: 1rpx solid rgba(255, 184, 0, 0.3); color: #ffb800; border-radius: 4rpx; padding: 4rpx 12rpx; font-size: 20rpx; }
+.tag-balanced { background: rgba(0, 212, 255, 0.15); border: 1rpx solid rgba(0, 212, 255, 0.3); color: #00d4ff; border-radius: 4rpx; padding: 4rpx 12rpx; font-size: 20rpx; }
+.tag-aggressive { background: rgba(0, 229, 160, 0.15); border: 1rpx solid rgba(0, 229, 160, 0.3); color: #00e5a0; border-radius: 4rpx; padding: 4rpx 12rpx; font-size: 20rpx; }

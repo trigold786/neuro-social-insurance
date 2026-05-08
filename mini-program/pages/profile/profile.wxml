@@ -1,0 +1,120 @@
+<view class="container">
+  <!-- User Info -->
+  <view class="card">
+    <view class="user-header flex items-center gap-3">
+      <view class="avatar">
+        <text wx:if="{{!userInfo}}">👤</text>
+        <text wx:else>{{userInfo.avatar}}</text>
+      </view>
+      <view class="flex-1">
+        <view wx:if="{{userInfo}}" class="text-lg text-white">{{userInfo.name || '用户'}}</view>
+        <view wx:else class="text-lg text-muted">未登录</view>
+        <view wx:if="{{userInfo}}" class="text-xs text-muted mt-2">{{userInfo.phone}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- Contribution History -->
+  <view class="card">
+    <view class="card-title">参保历史 // CONTRIBUTION HISTORY</view>
+    <view wx:if="{{contributionHistory.length > 0}}" class="history-list">
+      <view wx:for="{{contributionHistory}}" wx:key="id" class="history-item card-sub mb-2">
+        <view class="flex justify-between">
+          <text class="text-white">{{item.region}}</text>
+          <text class="text-muted text-xs">{{item.years}}年{{item.months}}月</text>
+        </view>
+        <view class="text-xs text-muted mt-2">
+          基数 ¥{{item.baseSalary.toLocaleString()}} · {{item.employmentType === 'Corporate_Employee' ? '企业职工' : '灵活就业'}}
+        </view>
+      </view>
+    </view>
+    <view wx:else class="text-muted text-xs text-center p-4">
+      暂无参保历史记录
+    </view>
+  </view>
+
+  <!-- Saved Scenarios -->
+  <view class="card">
+    <view class="card-title">已保存方案 // SAVED SCENARIOS</view>
+    <view wx:if="{{scenarios.length > 0}}" class="scenario-list">
+      <view wx:for="{{scenarios}}" wx:key="id" class="scenario-item card-sub mb-2">
+        <view class="flex justify-between items-center">
+          <view>
+            <view class="text-white">{{item.name}}</view>
+            <view class="text-xs text-muted mt-2">{{item.date}}</view>
+          </view>
+          <view class="flex gap-2">
+            <view wx:for="{{item.results}}" wx:key="strategy" class="scenario-tag tag-{{item.strategy}}">
+              <text class="text-{{item.color}}">¥{{item.pension}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+    <view wx:else class="text-muted text-xs text-center p-4">
+      暂无保存的方案
+    </view>
+  </view>
+
+  <!-- Tax Calculator -->
+  <view class="card">
+    <view class="card-title">个税计算器 // TAX CALCULATOR</view>
+    <view class="tax-form">
+      <view class="tax-field">
+        <view class="label">年度税前收入</view>
+        <view class="flex items-center gap-2">
+          <slider min="60000" max="1000000" step="10000" value="{{taxIncome}}"
+            bindchange="onTaxChange" data-key="taxIncome"
+            activeColor="#00d4ff" backgroundColor="#1a2332" />
+          <text class="text-cyan number text-sm">¥{{taxIncome.toLocaleString()}}</text>
+        </view>
+      </view>
+
+      <view class="tax-field mt-3">
+        <view class="label">社保公积金年缴</view>
+        <view class="flex items-center gap-2">
+          <slider min="0" max="100000" step="1000" value="{{taxInsurance}}"
+            bindchange="onTaxChange" data-key="taxInsurance"
+            activeColor="#00d4ff" backgroundColor="#1a2332" />
+          <text class="text-cyan number text-sm">¥{{taxInsurance.toLocaleString()}}</text>
+        </view>
+      </view>
+
+      <view class="tax-deductions mt-3">
+        <view class="label">专项附加扣除 (7项)</view>
+        <view class="deduction-grid">
+          <view wx:for="{{deductionItems}}" wx:key="key" class="deduction-item">
+            <text class="text-xs text-muted">{{item.label}}</text>
+            <input type="number" class="deduction-input" placeholder="0"
+              value="{{item.value}}" bindinput="onDeductionInput" data-key="{{item.key}}" />
+          </view>
+        </view>
+      </view>
+
+      <button class="btn-primary mt-3 w-full" bindtap="calculateTax">计算个税</button>
+
+      <view wx:if="{{taxResult}}" class="tax-result card-sub mt-3">
+        <view class="flex justify-between mb-2">
+          <text class="text-muted">年度应纳税</text>
+          <text class="text-amber number text-lg">¥{{taxResult.annualTax.toLocaleString()}}</text>
+        </view>
+        <view class="flex justify-between mb-2">
+          <text class="text-muted">税后年收入</text>
+          <text class="text-green number text-lg">¥{{taxResult.afterTaxIncome.toLocaleString()}}</text>
+        </view>
+        <view class="flex justify-between">
+          <text class="text-muted">实际税率</text>
+          <text class="text-cyan number">{{taxResult.effectiveRate}}%</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- Login/Logout -->
+  <view wx:if="{{!userInfo}}" class="btn-primary text-center" bindtap="goLogin">
+    登录 / 注册
+  </view>
+  <view wx:else class="btn-outline text-center" bindtap="logout">
+    退出登录
+  </view>
+</view>

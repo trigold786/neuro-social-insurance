@@ -1,0 +1,36 @@
+// Top-level build file
+buildscript {
+    ext {
+        kotlinVersion = '1.9.10'
+        gradleVersion = '8.2.1'
+        compileSdkVersion = 34
+        targetSdkVersion = 34
+        minSdkVersion = 24
+        androidxAppCompatVersion = '1.6.1'
+        androidxCoordinatorLayoutVersion = '1.2.0'
+        coreSplashScreenVersion = '1.0.1'
+        junitVersion = '4.13.2'
+        androidxJunitVersion = '1.1.5'
+        espressoCoreVersion = '3.5.1'
+    }
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath "com.android.tools.build:gradle:$gradleVersion"
+    }
+}
+
+apply from: "variables.gradle"
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}

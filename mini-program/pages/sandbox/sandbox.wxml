@@ -1,0 +1,139 @@
+<view class="container">
+  <!-- Loading Indicator -->
+  <view wx:if="{{loading}}" class="card loading-card">
+    <view class="flex items-center gap-2">
+      <view class="pulse-dot"></view>
+      <text class="text-cyan text-xs uppercase tracking-wider">计算中</text>
+    </view>
+  </view>
+
+  <!-- Strategy Cards -->
+  <view wx:if="{{allResults.length > 0}}" class="card">
+    <view class="card-title">3套方案对比</view>
+    <view class="strategy-grid">
+      <view wx:for="{{allResults}}" wx:key="strategy"
+        class="strategy-card strategy-{{item.strategy}} {{selectedStrategy === item.strategy ? 'active' : ''}}"
+        bindtap="selectStrategy" data-strategy="{{item.strategy}}">
+        <view class="strategy-badge badge-{{item.strategy}}">{{item.label}}</view>
+        <view class="strategy-pension number">¥{{item.pension}}</view>
+        <view class="strategy-unit text-xs text-muted">元/月</view>
+        <view class="flex justify-between mt-2">
+          <view class="text-xs">
+            <text class="text-muted">IRR </text>
+            <text class="text-green">{{item.irr}}%</text>
+          </view>
+          <view class="text-xs">
+            <text class="text-muted">成本 </text>
+            <text class="text-amber">{{item.invested}}万</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- Core Controls -->
+  <view class="card">
+    <view class="flex gap-3 mb-4">
+      <view class="flex-1 card-sub">
+        <view class="label">参保地</view>
+        <view class="value text-cyan">{{regionName}}</view>
+      </view>
+      <view class="flex-1 card-sub">
+        <view class="label">当前年龄</view>
+        <view class="value text-cyan number">{{age}}<text class="text-muted">岁</text></view>
+      </view>
+    </view>
+
+    <!-- Base Salary Slider -->
+    <view class="slider-section">
+      <view class="flex justify-between mb-2">
+        <text class="label">缴费基数</text>
+        <text class="text-cyan number">¥{{baseSalary}}</text>
+      </view>
+      <slider min="5000" max="30000" step="100" value="{{baseSalary}}"
+        bindchange="onSliderChange" data-key="baseSalary"
+        activeColor="#00d4ff" backgroundColor="#1a2332" />
+      <view class="flex justify-between text-xs text-muted">
+        <text>5,000</text>
+        <text>30,000</text>
+      </view>
+    </view>
+
+    <!-- Retirement Age Slider -->
+    <view class="slider-section mt-3">
+      <view class="flex justify-between mb-2">
+        <text class="label">退休年龄</text>
+        <text class="text-cyan number">{{retirementAge}}岁</text>
+      </view>
+      <slider min="50" max="70" step="1" value="{{retirementAge}}"
+        bindchange="onSliderChange" data-key="retirementAge"
+        activeColor="#00d4ff" backgroundColor="#1a2332" />
+      <view class="flex justify-between text-xs text-muted">
+        <text>50</text>
+        <text>70</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- Results -->
+  <view wx:if="{{currentResult}}" class="card">
+    <view class="flex justify-between mb-4">
+      <view class="card-title" style="margin-bottom:0">投入产出预测</view>
+      <view>
+        <text class="text-muted text-xs">IRR </text>
+        <text class="text-cyan number text-glow">{{currentResult.irr}}%</text>
+      </view>
+    </view>
+
+    <view class="flex gap-3 mb-4">
+      <view class="flex-1 card-sub text-center">
+        <view class="text-xs text-muted uppercase tracking-wider mb-1">预估投入</view>
+        <view class="text-lg text-amber number">{{currentResult.totalInvested}}万</view>
+      </view>
+      <view class="flex-1 card-sub text-center">
+        <view class="text-xs text-muted uppercase tracking-wider mb-1">终身收益</view>
+        <view class="text-lg text-green number">{{currentResult.totalBenefit}}万</view>
+      </view>
+    </view>
+
+    <!-- Pension Breakdown -->
+    <view wx:if="{{currentResult.basicPension}}" class="flex gap-2 mb-4">
+      <view class="flex-1 card-sub text-center">
+        <view class="text-xs text-muted">基础养老金</view>
+        <view class="text-sm text-cyan number">¥{{currentResult.basicPension}}</view>
+      </view>
+      <view class="flex-1 card-sub text-center">
+        <view class="text-xs text-muted">个人账户</view>
+        <view class="text-sm text-amber number">¥{{currentResult.personalAccountPension}}</view>
+      </view>
+      <view wx:if="{{currentResult.transitionalPension}}" class="flex-1 card-sub text-center">
+        <view class="text-xs text-muted">过渡性</view>
+        <view class="text-sm text-green number">¥{{currentResult.transitionalPension}}</view>
+      </view>
+    </view>
+
+    <!-- Break Even -->
+    <view class="flex items-center gap-3 card-sub">
+      <text class="text-cyan">⚖</text>
+      <view>
+        <view class="text-xs text-muted">盈亏平衡点</view>
+        <view class="text-sm text-white">
+          <text class="text-cyan text-glow number">{{currentResult.breakEvenAge}}</text>
+          <text class="text-muted text-xs"> 岁</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- Actions -->
+  <view class="flex gap-3">
+    <button class="flex-1 btn-outline" bindtap="saveScenario" disabled="{{!allResults.length}}">
+      <text class="text-cyan">💾</text>
+      <text>保存方案</text>
+    </button>
+    <button class="flex-1 btn-primary" bindtap="exportReport">
+      <text>📄</text>
+      <text>导出报告</text>
+    </button>
+  </view>
+</view>

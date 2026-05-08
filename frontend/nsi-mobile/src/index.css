@@ -1,0 +1,169 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --nsi-bg: #0a0f1e;
+    --nsi-card: #0d1526;
+    --nsi-border: #1a2332;
+    --nsi-cyan: #00d4ff;
+    --nsi-amber: #ffb800;
+    --nsi-coral: #ff4d6d;
+    --nsi-green: #00e5a0;
+    --nsi-text: #e8f0fe;
+    --nsi-muted: #7b8fa6;
+  }
+
+  html.light-theme {
+    --nsi-bg: #f0f4f8;
+    --nsi-card: #ffffff;
+    --nsi-border: #d1dae3;
+    --nsi-cyan: #0077aa;
+    --nsi-amber: #c28a00;
+    --nsi-coral: #c93050;
+    --nsi-green: #00875a;
+    --nsi-text: #1a2332;
+    --nsi-muted: #5a6a7a;
+  }
+
+  html {
+    background-color: var(--nsi-bg);
+    color: var(--nsi-text);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+    background-color: var(--nsi-bg);
+  }
+
+  ::selection {
+    background-color: rgba(0, 212, 255, 0.2);
+    color: #fff;
+  }
+}
+
+@layer components {
+  .nsi-card {
+    @apply bg-nsi-card border border-nsi-border rounded-sm;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), 0 2px 8px rgba(0,0,0,0.3);
+  }
+
+  .nsi-btn-primary {
+    @apply bg-nsi-cyan/10 border border-nsi-cyan/40 text-nsi-cyan font-mono text-sm font-medium
+           px-4 py-2.5 rounded-sm transition-all duration-200
+           hover:bg-nsi-cyan/20 hover:border-nsi-cyan/60 active:scale-[0.98];
+    text-shadow: 0 0 8px rgba(0,212,255,0.3);
+  }
+
+  .nsi-status-dot {
+    @apply w-2 h-2 rounded-full;
+  }
+
+  .nsi-status-dot--verified {
+    @apply bg-nsi-green text-nsi-green animate-pulse-glow;
+  }
+
+  .nsi-status-dot--conflict {
+    @apply bg-nsi-amber text-nsi-amber animate-pulse-glow;
+  }
+
+  .nsi-status-dot--draft {
+    @apply bg-nsi-coral text-nsi-coral animate-pulse-glow;
+  }
+
+  .nsi-grid-bg {
+    background-image:
+      linear-gradient(to right, #111a2e 1px, transparent 1px),
+      linear-gradient(to bottom, #111a2e 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  .nsi-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .nsi-scan-line {
+    @apply pointer-events-none fixed inset-0 z-50 opacity-[0.03];
+    background: linear-gradient(to bottom, transparent 50%, rgba(0,212,255,0.1) 51%, transparent 52%);
+    background-size: 100% 4px;
+  }
+}
+
+@layer utilities {
+  .text-glow-cyan {
+    text-shadow: 0 0 12px rgba(0, 212, 255, 0.4);
+  }
+  .text-glow-amber {
+    text-shadow: 0 0 12px rgba(255, 184, 0, 0.4);
+  }
+  .text-glow-green {
+    text-shadow: 0 0 12px rgba(0, 229, 160, 0.4);
+  }
+}
+
+html.light-theme .nsi-card {
+  background-color: var(--nsi-card);
+  border-color: var(--nsi-border);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 2px 8px rgba(0,0,0,0.1);
+}
+
+html.light-theme .nsi-btn-primary {
+  background-color: rgba(0, 119, 170, 0.1);
+  border-color: rgba(0, 119, 170, 0.3);
+  color: var(--nsi-cyan);
+  text-shadow: none;
+}
+
+html.light-theme .text-glow-cyan,
+html.light-theme .text-glow-amber,
+html.light-theme .text-glow-green {
+  text-shadow: none;
+}
+
+html.light-theme .nsi-grid-bg {
+  background-image:
+    linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px);
+}
+
+html.light-theme body {
+  background-color: var(--nsi-bg);
+  color: var(--nsi-text);
+}
+
+html.light-theme .nsi-scan-line {
+  background: linear-gradient(to bottom, transparent 50%, rgba(0,119,170,0.05) 51%, transparent 52%);
+}
+
+html.light-theme input[type="range"] {
+  accent-color: var(--nsi-cyan);
+}
+
+html.light-theme select {
+  background-color: var(--nsi-card);
+  color: var(--nsi-text);
+  border-color: var(--nsi-border);
+}
+
+html.light-theme input,
+html.light-theme textarea {
+  background-color: var(--nsi-card);
+  color: var(--nsi-text);
+  border-color: var(--nsi-border);
+}
+
+html.light-theme input::placeholder,
+html.light-theme textarea::placeholder {
+  color: var(--nsi-muted);
+}
+
+html.light-theme ::selection {
+  background-color: rgba(0, 119, 170, 0.2);
+  color: var(--nsi-text);
+}

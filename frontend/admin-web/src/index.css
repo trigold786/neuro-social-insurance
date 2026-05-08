@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root { --nsi-bg: #0a0f1e; --nsi-card: #0d1526; --nsi-border: #1a2332; }
+  html { background-color: var(--nsi-bg); color: #e8f0fe; font-family: 'Inter', system-ui, sans-serif; }
+  body { background-color: var(--nsi-bg); }
+}
+@layer components {
+  .nsi-card { @apply bg-nsi-card border border-nsi-border rounded-sm; box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), 0 2px 8px rgba(0,0,0,0.3); }
+  .nsi-input { @apply bg-nsi-bg border border-nsi-border rounded-sm px-3 py-2 text-sm text-nsi-text font-mono outline-none focus:border-nsi-cyan/50 transition-colors; }
+  .nsi-btn-primary { @apply bg-nsi-cyan/10 border border-nsi-cyan/40 text-nsi-cyan font-mono text-sm font-medium px-4 py-2 rounded-sm transition-all hover:bg-nsi-cyan/20 active:scale-[0.98]; }
+  .nsi-btn-danger { @apply bg-nsi-coral/10 border border-nsi-coral/40 text-nsi-coral font-mono text-sm font-medium px-4 py-2 rounded-sm transition-all hover:bg-nsi-coral/20 active:scale-[0.98]; }
+  .nsi-status-dot { @apply w-2 h-2 rounded-full; }
+}

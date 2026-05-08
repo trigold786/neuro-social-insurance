@@ -1,0 +1,73 @@
+<view class="container">
+  <!-- Profile Card -->
+  <view class="card">
+    <view class="card-title">智能档案 // SMART PROFILE</view>
+    <view class="flex gap-3 mb-4">
+      <view class="flex-1 card-sub">
+        <view class="label">参保地</view>
+        <view class="value text-cyan">{{regionName}}</view>
+        <view class="label text-xs text-muted">{{regionCode}}</view>
+      </view>
+      <view class="flex-1 card-sub">
+        <view class="label">当前年龄</view>
+        <view class="value text-cyan number">{{age}}<text class="text-muted">岁</text></view>
+      </view>
+    </view>
+    <view class="card-sub">
+      <view class="label">累计参保</view>
+      <view class="value text-cyan number text-xl text-glow">
+        {{years}}年{{months}}个月
+      </view>
+    </view>
+  </view>
+
+  <!-- Strategy Overview -->
+  <view class="card">
+    <view class="flex justify-between mb-3">
+      <view class="card-title" style="margin-bottom:0">方案概览</view>
+      <navigator url="/pages/sandbox/sandbox" hover-class="none">
+        <text class="text-cyan text-xs">查看全部 →</text>
+      </navigator>
+    </view>
+    <view wx:if="{{recentScenarios.length > 0}}" class="scenario-list">
+      <view wx:for="{{recentScenarios}}" wx:key="id" class="scenario-item card-sub">
+        <view class="flex justify-between">
+          <text class="text-white">{{item.name}}</text>
+          <text class="text-muted text-xs">{{item.date}}</text>
+        </view>
+        <view class="flex gap-2 mt-2">
+          <view wx:for="{{item.results}}" wx:key="strategy" class="scenario-tag tag-{{item.strategy}}">
+            <text>{{item.label}}</text>
+            <text class="text-cyan">¥{{item.pension}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    <view wx:else class="text-muted text-xs text-center p-4">
+      暂未保存方案，启动沙盘计算后可保存
+    </view>
+  </view>
+
+  <!-- Policy Radar -->
+  <view class="card">
+    <view class="card-title">政策情报雷达 // POLICY RADAR</view>
+    <view wx:for="{{policies}}" wx:key="policy_id" class="policy-item card-sub mb-2">
+      <view class="flex items-center gap-2">
+        <view class="badge badge-{{item.status}}"></view>
+        <view class="flex-1">
+          <view class="text-xs text-muted">{{item.city_name}}</view>
+          <view class="text-sm text-white truncate">{{item.policy_id}}</view>
+        </view>
+        <view class="text-xs text-muted">生效 {{item.effective_date}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- Start Button -->
+  <navigator url="/pages/sandbox/sandbox" hover-class="none">
+    <view class="btn-primary flex items-center justify-center gap-2">
+      <text class="icon">⚡</text>
+      <text>启动智能测算沙盘</text>
+    </view>
+  </navigator>
+</view>
