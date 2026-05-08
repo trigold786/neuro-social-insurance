@@ -76,7 +76,9 @@ App({
   },
 
   getApiBase() {
-    return 'http://localhost:30314/v1'
+    // 开发环境: Nginx Gateway
+    // 生产环境: 替换为实际域名，如 https://api.nsi.com/v1
+    return 'http://localhost:30310/v1'
   },
 
   async loginWithToken() {

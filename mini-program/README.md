@@ -25,7 +25,7 @@ mini-program/
 
 1. **打开微信开发者工具**, 选择「导入项目」
 2. 选择 `nsi-platform/mini-program` 目录
-3. 填入 AppID (`wxxxxxxxxxxx` 需替换为真实小程序 AppID)
+3. 填入 AppID (`YOUR_WECHAT_APPID` 需替换为真实小程序 AppID，参见 `project.config.json`)
 4. 填写项目名称 `nsi-miniprogram`
 5. 点击「导入」
 
@@ -67,4 +67,4 @@ getApiBase() {
 
 - 小程序需配置合法域名 (微信公众平台后台)
 - 后端 API 必须支持 HTTPS (开发阶段可临时开启不校验)
-- `GITHUB_PERSONAL_ACCESS_TOKEN` 需在微信小程序后台配置
+- tabBar 图标尺寸需符合微信要求（建议 81×81 px）

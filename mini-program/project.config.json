@@ -43,7 +43,7 @@
   },
   "compileType": "miniprogram",
   "libVersion": "3.4.0",
-  "appid": "wxxxxxxxxxxx",
+  "appid": "YOUR_WECHAT_APPID",
   "projectname": "nsi-miniprogram",
   "condition": {},
   "editorSetting": {

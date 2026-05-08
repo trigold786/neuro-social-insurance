@@ -37,9 +37,5 @@
       }
     ]
   },
-  "usingComponents": {
-    "strategy-card": "/components/strategy-card",
-    "policy-radar": "/components/policy-radar",
-    "tax-calculator": "/components/tax-calculator"
-  }
+  "usingComponents": {}
 }
